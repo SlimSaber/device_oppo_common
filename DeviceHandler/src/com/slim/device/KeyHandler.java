@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -121,11 +122,6 @@ public class KeyHandler implements DeviceKeyHandler {
                         .getString(ScreenOffGesture.PREF_GESTURE_ARROW_RIGHT,
                         ActionConstants.ACTION_MEDIA_NEXT);
                 break;
-            case KEY_DOUBLE_TAP:
-                action = getGestureSharedPreferences()
-                        .getString(ScreenOffGesture.PREF_GESTURE_DOUBLE_TAP,
-                        ActionConstants.ACTION_WAKE_DEVICE);
-                break;
             }
             if (action == null || action != null && action.equals(ActionConstants.ACTION_NULL)) {
                 return;
@@ -151,9 +147,13 @@ public class KeyHandler implements DeviceKeyHandler {
         int scanCode = event.getScanCode();
         boolean isKeySupported = ArrayUtils.contains(sSupportedGestures, scanCode);
         if (isKeySupported && !mEventHandler.hasMessages(GESTURE_REQUEST)) {
+            if (scanCode == KEY_DOUBLE_TAP && !mPowerManager.isScreenOn()) {
+                mPowerManager.wakeUpWithProximityCheck(SystemClock.uptimeMillis());
+                return true;
+            }
             Message msg = getMessageForKeyEvent(event);
             if (mProximitySensor != null) {
-                mEventHandler.sendMessageDelayed(msg, scanCode == KEY_DOUBLE_TAP ? 400 : 200);
+                mEventHandler.sendMessageDelayed(msg, 200);
                 processEvent(event);
             } else {
                 mEventHandler.sendMessage(msg);
