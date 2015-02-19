@@ -110,7 +110,7 @@ public class KeyHandler implements DeviceKeyHandler {
             case GESTURE_V_UP_SCANCODE:
                 action = getGestureSharedPreferences()
                         .getString(ScreenOffGesture.PREF_GESTURE_ARROW_UP,
-                        ActionConstants.ACTION_TORCH);
+                        ActionConstants.ACTION_NULL);
                 break;
             case GESTURE_LTR_SCANCODE:
                 action = getGestureSharedPreferences()

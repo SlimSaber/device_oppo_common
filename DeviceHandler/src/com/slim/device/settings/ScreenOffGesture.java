@@ -146,7 +146,7 @@ public class ScreenOffGesture extends PreferenceFragment implements
 
         if (KernelControl.isArrowUpSupported()) {
             setupOrUpdatePreference(mGestureArrowUp, mScreenOffGestureSharedPreferences
-                    .getString(PREF_GESTURE_ARROW_UP, ActionConstants.ACTION_TORCH));
+                    .getString(PREF_GESTURE_ARROW_UP, ActionConstants.ACTION_NULL));
         } else {
             prefs.removePreference(mGestureArrowUp);
         }
@@ -253,7 +253,7 @@ public class ScreenOffGesture extends PreferenceFragment implements
         editor.putString(PREF_GESTURE_DOUBLE_SWIPE,
                 ActionConstants.ACTION_MEDIA_PLAY_PAUSE).commit();
         editor.putString(PREF_GESTURE_ARROW_UP,
-                ActionConstants.ACTION_TORCH).commit();
+                ActionConstants.ACTION_NULL).commit();
         editor.putString(PREF_GESTURE_ARROW_DOWN,
                 ActionConstants.ACTION_VIB_SILENT).commit();
         editor.putString(PREF_GESTURE_ARROW_LEFT,
