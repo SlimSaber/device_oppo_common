@@ -65,6 +65,7 @@ public class ScreenOffGesture extends PreferenceFragment implements
 
     private static final int DLG_SHOW_ACTION_DIALOG  = 0;
     private static final int DLG_RESET_TO_DEFAULT    = 1;
+    private static final int DLG_DOUBLE_TAP_INFO     = 2;
 
     private static final int MENU_RESET = Menu.FIRST;
 
@@ -159,8 +160,6 @@ public class ScreenOffGesture extends PreferenceFragment implements
         setupOrUpdatePreference(mGestureDoubleTap, mScreenOffGestureSharedPreferences
                 .getString(PREF_GESTURE_DOUBLE_TAP, ActionConstants.ACTION_WAKE_DEVICE));
 
-        mGestureDoubleTap.setEnabled(false);
-
         boolean enableGestures =
                 mScreenOffGestureSharedPreferences.getBoolean(PREF_GESTURE_ENABLE, true);
         mEnableGestures.setChecked(enableGestures);
@@ -221,8 +220,7 @@ public class ScreenOffGesture extends PreferenceFragment implements
             settingsKey = PREF_GESTURE_ARROW_RIGHT;
             dialogTitle = R.string.gesture_arrow_right_title;
         } else if (preference == mGestureDoubleTap) {
-            settingsKey = PREF_GESTURE_DOUBLE_TAP;
-            dialogTitle = R.string.gesture_double_tap_title;
+            showDialogInner(DLG_DOUBLE_TAP_INFO, null, 0);
         }
         if (settingsKey != null) {
             showDialogInner(DLG_SHOW_ACTION_DIALOG, settingsKey, dialogTitle);
@@ -382,6 +380,12 @@ public class ScreenOffGesture extends PreferenceFragment implements
                             getOwner().resetToDefault();
                         }
                     })
+                    .create();
+               case DLG_DOUBLE_TAP_INFO:
+                    return new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.info)
+                    .setMessage(R.string.double_tap_info_message)
+                    .setPositiveButton(R.string.dlg_ok, null)
                     .create();
             }
             throw new IllegalArgumentException("unknown id " + id);
