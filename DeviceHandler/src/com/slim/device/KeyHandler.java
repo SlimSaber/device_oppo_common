@@ -16,18 +16,22 @@
 package com.slim.device;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -69,15 +73,26 @@ public class KeyHandler implements DeviceKeyHandler {
     private SensorManager mSensorManager;
     private Sensor mProximitySensor;
     WakeLock mProximityWakeLock;
+    private int mProximityTimeOut;
+    private boolean mProximityWakeSupported;
 
     public KeyHandler(Context context) {
         mContext = context;
         mEventHandler = new EventHandler();
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        mProximityWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                "ProximityWakeLock");
+
+        final Resources resources = mContext.getResources();
+        mProximityTimeOut = resources.getInteger(
+                com.android.internal.R.integer.config_proximityCheckTimeout);
+        mProximityWakeSupported = resources.getBoolean(
+                com.android.internal.R.bool.config_proximityCheckOnWake);
+
+        if (mProximityWakeSupported) {
+            mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+            mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+            mProximityWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    "ProximityWakeLock");
+        }
 
         try {
             mGestureContext = mContext.createPackageContext(
@@ -122,6 +137,11 @@ public class KeyHandler implements DeviceKeyHandler {
                         .getString(ScreenOffGesture.PREF_GESTURE_ARROW_RIGHT,
                         ActionConstants.ACTION_MEDIA_NEXT);
                 break;
+            case KEY_DOUBLE_TAP:
+                if (!mPowerManager.isScreenOn()) {
+                    mPowerManager.wakeUp(SystemClock.uptimeMillis());
+                }
+                break;
             }
             if (action == null || action != null && action.equals(ActionConstants.ACTION_NULL)) {
                 return;
@@ -147,13 +167,11 @@ public class KeyHandler implements DeviceKeyHandler {
         int scanCode = event.getScanCode();
         boolean isKeySupported = ArrayUtils.contains(sSupportedGestures, scanCode);
         if (isKeySupported && !mEventHandler.hasMessages(GESTURE_REQUEST)) {
-            if (scanCode == KEY_DOUBLE_TAP && !mPowerManager.isScreenOn()) {
-                mPowerManager.wakeUpWithProximityCheck(SystemClock.uptimeMillis());
-                return true;
-            }
             Message msg = getMessageForKeyEvent(event);
-            if (mProximitySensor != null) {
-                mEventHandler.sendMessageDelayed(msg, 200);
+            boolean proximityWakeCheckEnabled = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.PROXIMITY_ON_WAKE, 0) == 1;
+            if (mProximityWakeSupported && proximityWakeCheckEnabled && mProximitySensor != null) {
+                mEventHandler.sendMessageDelayed(msg, mProximityTimeOut);
                 processEvent(event);
             } else {
                 mEventHandler.sendMessage(msg);
