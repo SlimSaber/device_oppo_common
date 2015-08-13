@@ -20,8 +20,6 @@
     <string name="cancel">Cancel</string>
     <string name="reset">Reset</string>
     <string name="reset_message">Reset all entries to default?</string>
-    <string name="info">Info</string>
-    <string name="double_tap_info_message">You cannot assign other actions than wake up device</string>
 
     <string name="screen_off_gesture_title">Screen off gestures</string>
     <string name="group_applications">Applications</string>
