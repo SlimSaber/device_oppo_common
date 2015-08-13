@@ -138,9 +138,9 @@ public class KeyHandler implements DeviceKeyHandler {
                         ActionConstants.ACTION_MEDIA_NEXT);
                 break;
             case KEY_DOUBLE_TAP:
-                if (!mPowerManager.isScreenOn()) {
-                    mPowerManager.wakeUp(SystemClock.uptimeMillis());
-                }
+                action = getGestureSharedPreferences()
+                        .getString(ScreenOffGesture.PREF_GESTURE_DOUBLE_TAP,
+                        ActionConstants.ACTION_WAKE_DEVICE);
                 break;
             }
             if (action == null || action != null && action.equals(ActionConstants.ACTION_NULL)) {
